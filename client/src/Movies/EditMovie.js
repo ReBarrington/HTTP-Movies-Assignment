@@ -1,38 +1,51 @@
 // Component with a form to update the chosen movie
 import React, { useState, useEffect} from 'react';
 import { useParams, useHistory } from 'react-router';
+import axios from 'axios';
 
 const initialMovie = {
     id: '',
     title: '',
     director: '',
     metascore: '',
-    stars: ['']
+    stars: []
 }
 
 const EditMovie = props => {
+
+    console.log(props, ' props in EditMovie')
+
     const { id } = useParams();
     const { push } = useHistory();
     const [movie, setMovie] = useState(initialMovie);
 
-    const changeHandler = e => {
-        e.persist(); // to access the event properties in an asynchronous way
+    const changeHandler = ev => {
+        ev.persist(); // to access the event properties in an asynchronous way
         setMovie({
             ...movie,
-            [e.target.name]: e.target.value
+            [ev.target.name]: ev.target.value
         })}
     
     // loop through movies to find which movie to edit, then set to state.
     useEffect(() => {
-        const movieToEdit = props.movies.find(e => `${e.id}` === id);
+        const movieToEdit = props.movies.find(elem => `${elem.id}` === id);
         if (movieToEdit) {
             setMovie(movieToEdit);
         }
-        }, [props.movies, id])
+    }, [props.movies, id])
     
     const handleSubmit = e => {
         e.preventDefault();
-        // make a PUT request to edit the item
+        axios
+            .put(`http://localhost:5000/api/movies/${id}`, movie)
+            .then(res => {
+                // console.log(res, ' res')
+                const editedMovieList = [...props.movies]
+                editedMovieList[id] = res.data
+                props.setMovies(editedMovieList)
+                push(`/movies/${id}`);
+            })
+            .catch(err => console.log(err));
     }
 
     return (
@@ -66,11 +79,11 @@ const EditMovie = props => {
         <div className="baseline" />
 
         <input
-          type="string"
-          name="stars"
+          type="text"
+          name="stars[]"
           onChange={changeHandler}
           placeholder="Stars"
-          value={movie.description}
+          value={movie.stars}
         />
         
         <button className="md-button form-button">Update</button>

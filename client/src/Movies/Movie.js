@@ -25,6 +25,20 @@ function Movie(props) {
     props.history.push(`/update-movie/${movie.id}`)
   }
 
+  const deleteMovie = e => {
+    e.preventDefault();
+    axios.delete(`http://localhost:5000/api/movies/${movie.id}`)
+      .then(res => {
+        const newMovieList = [];
+        props.movies.map(movie => {
+          if (movie.id !== res.data) {
+            newMovieList.push(movie);
+          }
+        })
+        props.setMovies(newMovieList);
+      })
+  }
+
   useEffect(() => {
     fetchMovie(match.params.id);
   }, [match.params.id]);
@@ -40,6 +54,9 @@ function Movie(props) {
       <div className='save-button' onClick={saveMovie}>
         Save
       </div>
+      <button className="md-button" onClick={deleteMovie}>
+        Delete
+      </button>
     </div>
   );
 }
